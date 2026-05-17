@@ -8,6 +8,9 @@ from pymongo.errors import WriteError
 from src.util.dao import DAO
 
 
+pytestmark = pytest.mark.integration
+
+
 @pytest.fixture
 def mongo_url(monkeypatch):
     """Use the test MongoDB instance, not production data."""
@@ -102,12 +105,7 @@ def test_create_duplicate_email_fails(user_dao):
         "email": "same@example.com",
     }
 
-    result_1 = user_dao.create(user_1)
-    result_2 = user_dao.create(user_2)
+    user_dao.create(user_1)
 
-    assert result_1 is not None
-    assert result_2 is not None
-
-    users = list(user_dao.collection.find({"email": "same@example.com"}))
-
-    assert len(users) == 2
+    with pytest.raises(WriteError):
+        user_dao.create(user_2)
